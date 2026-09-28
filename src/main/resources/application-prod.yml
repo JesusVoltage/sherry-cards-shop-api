@@ -3,6 +3,8 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}}
     username: ${SPRING_DATASOURCE_USERNAME:${MYSQLUSER}}
     password: ${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD}}
+  flyway:
+    baseline-on-migrate: true
 logging:
   level:
     root: INFO
