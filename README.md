@@ -1,6 +1,6 @@
 # Sherry Cards Shop API
 
-API REST en Java 21 y Spring Boot 3, organizada como monolito modular para consumo JSON desde Angular.
+API REST en Java 21 y Spring Boot 3. La configuración de base de datos está separada por perfil; Flyway administra el esquema y Hibernate solo lo valida.
 
 ## Requisitos
 
@@ -8,49 +8,47 @@ API REST en Java 21 y Spring Boot 3, organizada como monolito modular para consu
 - Maven 3.9+
 - MySQL 8 para los perfiles `dev` y `prod`
 
-## Configuración local
+## Desarrollo local
 
-El perfil `dev` se activa por defecto. Define `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` en el entorno antes de arrancar. Flyway aplica las migraciones ubicadas en `src/main/resources/db/migration`; Hibernate valida el esquema y nunca crea tablas.
+El perfil predeterminado es `dev`. Crea una base MySQL local y configura credenciales en el entorno o en un `.env` local (Spring Boot no carga `.env` por sí solo):
 
 ```sh
-export DB_URL='jdbc:mysql://localhost:3306/sherry_cards_shop'
-export DB_USERNAME='<usuario>'
-export DB_PASSWORD='<contraseña>'
+export SPRING_PROFILES_ACTIVE=dev
+export SPRING_DATASOURCE_URL='jdbc:mysql://localhost:3306/sherry_cards_shop'
+export SPRING_DATASOURCE_USERNAME='<usuario-local>'
+export SPRING_DATASOURCE_PASSWORD='<contraseña-local>'
 mvn spring-boot:run
 ```
 
-Las pruebas usan el perfil `test` y una base H2 en modo de compatibilidad MySQL:
+También se aceptan `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` como alternativas locales. La URL debe comenzar por `jdbc:mysql://`.
+
+## Railway
+
+Configura `SPRING_PROFILES_ACTIVE=prod` en el servicio de la API. Para compartir la conexión del servicio MySQL, crea estas variables de referencia en Railway, reemplazando `MySQL` por el nombre exacto del servicio:
+
+```text
+SPRING_DATASOURCE_URL=jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}
+SPRING_DATASOURCE_USERNAME=${{MySQL.MYSQLUSER}}
+SPRING_DATASOURCE_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+```
+
+El perfil `prod` también puede consumir directamente `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER` y `MYSQLPASSWORD` si Railway las expone al servicio API; en ese caso construye `jdbc:mysql://...` a partir del host, puerto y base. Las variables `SPRING_DATASOURCE_*` tienen prioridad cuando existen. No uses `MYSQL_URL` como datasource URL: normalmente empieza por `mysql://`, que no es una JDBC URL.
+
+Railway asigna `PORT` automáticamente y la aplicación lo prioriza sobre `SERVER_PORT`.
+
+## Perfiles y esquema
+
+- `dev`: MySQL local; datasource por `SPRING_DATASOURCE_*` o, alternativamente, `DB_*`. URL local predeterminada: `jdbc:mysql://localhost:3306/sherry_cards_shop`.
+- `prod`: datasource exclusivamente desde variables de entorno (`SPRING_DATASOURCE_*` o variables MySQL de Railway). No hay usuario ni contraseña por defecto.
+- `test`: H2 en memoria en modo MySQL; Flyway aplica la misma migración para que Hibernate pueda validar el esquema.
+
+Flyway en `dev` y `prod` usa automáticamente el mismo datasource configurado por Spring Boot. `spring.jpa.hibernate.ddl-auto` es `validate`; Hibernate no crea ni modifica tablas. Flyway tiene `clean` deshabilitado.
+
+## Ejecución y comprobación
 
 ```sh
+mvn spring-boot:run
 mvn test
 ```
 
-## Endpoints actuales
-
-- `GET /api/health`: estado de la aplicación.
-- `GET /v3/api-docs`: especificación OpenAPI en JSON.
-- `/swagger-ui.html`: documentación interactiva.
-- `/actuator/health`: health check de Spring Boot Actuator.
-
-Los módulos de ecommerce solo están reservados como estructura; no se han implementado productos ni procesos de negocio. Spring Security está preparado, pero permite las solicitudes sin autenticación mientras no se defina el mecanismo de acceso.
-
-## Perfiles
-
-- `dev`: MySQL y logging de desarrollo.
-- `test`: H2 aislado para las pruebas.
-- `prod`: MySQL y logging de producción.
-- `CORS_ALLOWED_ORIGINS`: orígenes Angular permitidos separados por comas (por defecto `http://localhost:4200`).
-- `SERVER_PORT`: puerto HTTP (por defecto `8080`).
-
-## Docker
-
-```sh
-docker build -t sherry-cards-shop-api .
-docker run --rm -p 8080:8080 \
-  -e DB_URL='jdbc:mysql://host.docker.internal:3306/sherry_cards_shop' \
-  -e DB_USERNAME='<usuario>' \
-  -e DB_PASSWORD='<contraseña>' \
-  sherry-cards-shop-api
-```
-
-No se incluyen credenciales. La base de datos debe existir antes de iniciar; Flyway administra sus tablas mediante migraciones.
+Endpoints de salud: `GET /api/health` y `GET /actuator/health`.

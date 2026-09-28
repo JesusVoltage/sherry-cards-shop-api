@@ -3,10 +3,6 @@ spring:
     name: sherry-cards-shop-api
   profiles:
     default: dev
-  datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/sherry_cards_shop}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -14,8 +10,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -40,28 +38,11 @@ app:
 spring:
   config:
     activate:
-      on-profile: dev
-logging:
-  level:
-    com.sherrycardsshop.api: DEBUG
-
----
-spring:
-  config:
-    activate:
       on-profile: test
   datasource:
     url: jdbc:h2:mem:sherry_cards_shop;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
     password:
     driver-class-name: org.h2.Driver
-
----
-spring:
-  config:
-    activate:
-      on-profile: prod
-logging:
-  level:
-    root: INFO
-    com.sherrycardsshop.api: INFO
+  flyway:
+    enabled: true
