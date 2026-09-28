@@ -9,6 +9,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 COPY --from=build /workspace/target/sherry-cards-shop-api-1.0.0.jar app.jar
+ENV SPRING_PROFILES_ACTIVE=prod
 USER spring:spring
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
