@@ -12,6 +12,7 @@ spring:
     locations: classpath:db/migration
     validate-on-migrate: true
     clean-disabled: true
+    baseline-on-migrate: true
 server:
   port: ${PORT:${SERVER_PORT:8080}}
 springdoc:
