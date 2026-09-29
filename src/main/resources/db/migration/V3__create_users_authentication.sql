@@ -23,6 +23,7 @@ VALUES ('PENDIENTE', 'Pendiente'), ('ACTIVO', 'Activo'), ('BLOQUEADO', 'Bloquead
 CREATE TABLE usuarios (
     id BIGINT NOT NULL AUTO_INCREMENT,
     email VARCHAR(254) NOT NULL,
+    username VARCHAR(30) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellidos VARCHAR(150),
     password_hash VARCHAR(255),
@@ -35,6 +36,7 @@ CREATE TABLE usuarios (
     ultimo_acceso_at DATETIME(6),
     CONSTRAINT pk_usuarios PRIMARY KEY (id),
     CONSTRAINT uk_usuarios_email UNIQUE (email),
+    CONSTRAINT uk_usuarios_username UNIQUE (username),
     CONSTRAINT uk_usuarios_google_sub UNIQUE (google_sub),
     CONSTRAINT fk_usuarios_roles FOREIGN KEY (rol_id) REFERENCES roles (id),
     CONSTRAINT fk_usuarios_estados FOREIGN KEY (estado_id) REFERENCES estados_usuario (id),
