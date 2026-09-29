@@ -1,11 +1,4 @@
 spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}}
-    username: ${SPRING_DATASOURCE_USERNAME:${MYSQLUSER}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD}}
   flyway:
+    enabled: true
     baseline-on-migrate: true
-logging:
-  level:
-    root: INFO
-    com.sherrycardsshop.api: INFO

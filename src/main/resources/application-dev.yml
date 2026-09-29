@@ -1,8 +1,0 @@
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:mysql://localhost:3306/sherry_cards_shop}}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
-logging:
-  level:
-    com.sherrycardsshop.api: DEBUG

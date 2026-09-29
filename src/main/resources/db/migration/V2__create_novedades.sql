@@ -1,4 +1,4 @@
-CREATE TABLE novedades (
+CREATE TABLE IF NOT EXISTS novedades (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(150) NOT NULL,
     slug VARCHAR(150) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE novedades (
 CREATE INDEX idx_novedades_active_display_order
     ON novedades (active, display_order);
 
-INSERT INTO novedades (title, slug, description, category_id, active, display_order)
+INSERT IGNORE INTO novedades (title, slug, description, category_id, active, display_order)
 SELECT 'EB-05 de One Piece',
        'eb-05-one-piece',
        'Novedad del set EB-05 de One Piece.',
@@ -27,7 +27,7 @@ SELECT 'EB-05 de One Piece',
 FROM categories
 WHERE categories.slug = 'one-piece';
 
-INSERT INTO novedades (title, slug, description, category_id, active, display_order)
+INSERT IGNORE INTO novedades (title, slug, description, category_id, active, display_order)
 SELECT '30 aniversario de Pokémon',
        '30-aniversario-pokemon',
        'Novedades por el 30 aniversario de Pokémon.',
