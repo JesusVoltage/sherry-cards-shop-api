@@ -16,6 +16,7 @@ import com.sherrycardsshop.api.auth.repository.RolRepository;
 import com.sherrycardsshop.api.auth.repository.UsuarioRepository;
 import com.sherrycardsshop.api.auth.service.GoogleTokenVerifier.GoogleUser;
 import com.sherrycardsshop.api.common.exception.ApiException;
+import com.sherrycardsshop.api.config.site.SiteProperties;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,13 +38,14 @@ public class AuthService {
     private final GoogleTokenVerifier googleTokenVerifier;
     private final LoginAttemptService loginAttemptService;
     private final UserMapper userMapper;
+    private final SiteProperties site;
     // Se compara contra este hash cuando el email no existe para no revelar cuentas por tiempo de respuesta.
     private final String dummyPasswordHash;
 
     public AuthService(UsuarioRepository usuarioRepository, RolRepository rolRepository,
                        EstadoUsuarioRepository estadoUsuarioRepository, PasswordEncoder passwordEncoder,
                        PasswordPolicy passwordPolicy, TokenService tokenService, GoogleTokenVerifier googleTokenVerifier,
-                       LoginAttemptService loginAttemptService, UserMapper userMapper) {
+                       LoginAttemptService loginAttemptService, UserMapper userMapper, SiteProperties site) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.estadoUsuarioRepository = estadoUsuarioRepository;
@@ -53,11 +55,15 @@ public class AuthService {
         this.googleTokenVerifier = googleTokenVerifier;
         this.loginAttemptService = loginAttemptService;
         this.userMapper = userMapper;
+        this.site = site;
         this.dummyPasswordHash = passwordEncoder.encode("dummy-password-for-timing");
     }
 
     @Transactional
     public UserDto register(RegisterRequest request) {
+        if (site.closed()) {
+            throw siteClosed();
+        }
         String email = normalizeEmail(request.email());
         if (usuarioRepository.existsByUsernameIgnoreCase(request.username())) {
             throw new ApiException(HttpStatus.CONFLICT, "El username ya existe", "username");
@@ -111,6 +117,7 @@ public class AuthService {
         if (!usuario.isActivo()) {
             throw TokenService.invalidSession();
         }
+        requireSiteAccess(usuario);
         return new AuthSession(userMapper.toDto(usuario), tokenService.createAccessToken(usuario),
                 tokenService.createRefreshToken(usuario, client));
     }
@@ -176,6 +183,7 @@ public class AuthService {
     }
 
     private AuthSession startSession(Usuario usuario, ClientInfo client) {
+        requireSiteAccess(usuario);
         usuario.setUltimoAccesoAt(LocalDateTime.now());
         return new AuthSession(userMapper.toDto(usuario), tokenService.createAccessToken(usuario),
                 tokenService.createRefreshToken(usuario, client));
@@ -195,6 +203,16 @@ public class AuthService {
             case EstadoUsuario.BLOQUEADO -> throw new ApiException(HttpStatus.FORBIDDEN, "La cuenta está bloqueada");
             default -> throw new ApiException(HttpStatus.FORBIDDEN, "La cuenta está pendiente de activación");
         }
+    }
+
+    private void requireSiteAccess(Usuario usuario) {
+        if (site.closed() && !Rol.ADMIN.equals(usuario.getRol().getCode())) {
+            throw siteClosed();
+        }
+    }
+
+    private static ApiException siteClosed() {
+        return new ApiException(HttpStatus.FORBIDDEN, "La tienda todavía no está abierta");
     }
 
     private String generateUsername(String email) {

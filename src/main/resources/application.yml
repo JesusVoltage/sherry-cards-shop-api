@@ -42,6 +42,8 @@ management:
     env:
       enabled: true
 app:
+  site:
+    closed: ${APP_SITE_CLOSED:false}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
   auth:
