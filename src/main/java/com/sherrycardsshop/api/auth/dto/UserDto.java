@@ -11,5 +11,7 @@ public record UserDto(
         String role,
         String status,
         LocalDateTime emailVerifiedAt,
-        LocalDateTime lastAccessAt) {
+        LocalDateTime lastAccessAt,
+        boolean hasPassword,
+        boolean googleLinked) {
 }

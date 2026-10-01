@@ -47,6 +47,7 @@ Opcionales:
 | `SERVER_PORT` | Puerto HTTP local; Railway usa su variable `PORT` automáticamente | `8080` |
 | `CORS_ALLOWED_ORIGINS` | Orígenes Angular separados por comas | `http://localhost:4200` |
 | `APP_AUTH_JWT_SECRET` | Secreto HS256 de los access tokens (mínimo 32 bytes). **Obligatorio en `prod`** | Valor fijo de desarrollo en `dev` |
+| `APP_AUTH_BREACHED_PASSWORD_CHECK` | Rechaza contraseñas filtradas consultando Pwned Passwords (k-anonimato) | `true` (`false` en `test`) |
 | `GOOGLE_CLIENT_ID` | Client ID OAuth de Google; vacío desactiva `/api/auth/google` | vacío |
 | `APP_AUTH_COOKIE_SECURE` | Atributo `Secure` de las cookies | `true` (`false` en `dev`) |
 | `APP_AUTH_COOKIE_SAME_SITE` | `Lax` con frontend y API en el mismo sitio; `None` si están en dominios distintos | `Lax` |
@@ -91,6 +92,7 @@ En estas referencias, `MySQL` debe coincidir exactamente con el nombre del servi
 - `GET /api/health`: estado de la aplicación.
 - `GET /api/categories`: categorías activas ordenadas por prioridad.
 - `POST /api/auth/register|login|google|refresh|logout` y `GET /api/auth/me`: autenticación. Ver `docs/autenticacion.md`.
+- `PUT /api/account/profile` y `PUT /api/account/password`: datos personales y contraseña. Ver `docs/autenticacion.md`.
 - `GET|POST /api/account/addresses` y `PUT|DELETE /api/account/addresses/{id}`: direcciones del usuario autenticado. Ver `docs/direcciones.md`.
 - `GET /actuator/health`: salud de la aplicación y sus componentes.
 - `GET /v3/api-docs` y `/swagger-ui.html`: documentación OpenAPI.

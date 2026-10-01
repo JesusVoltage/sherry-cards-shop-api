@@ -50,6 +50,7 @@ app:
     refresh-token-ttl: 30d
     max-login-failures: 5
     login-lockout: 15m
+    breached-password-check: ${APP_AUTH_BREACHED_PASSWORD_CHECK:true}
     cookie:
       secure: ${APP_AUTH_COOKIE_SECURE:true}
       same-site: ${APP_AUTH_COOKIE_SAME_SITE:Lax}
@@ -86,6 +87,7 @@ spring:
 app:
   auth:
     jwt-secret: test-only-secret-0123456789abcdef0123456789
+    breached-password-check: false
     google:
       client-id: test-google-client-id
 

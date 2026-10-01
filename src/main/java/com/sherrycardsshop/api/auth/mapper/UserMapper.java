@@ -12,5 +12,7 @@ public interface UserMapper {
     @Mapping(target = "status", source = "estado.code")
     @Mapping(target = "emailVerifiedAt", source = "emailVerificadoAt")
     @Mapping(target = "lastAccessAt", source = "ultimoAccesoAt")
+    @Mapping(target = "hasPassword", expression = "java(usuario.getPasswordHash() != null)")
+    @Mapping(target = "googleLinked", expression = "java(usuario.getGoogleSub() != null)")
     UserDto toDto(Usuario usuario);
 }

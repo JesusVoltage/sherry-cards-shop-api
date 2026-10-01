@@ -35,9 +35,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException exception) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleApiException(ApiException exception) {
+        Map<String, String> fieldErrors = exception.getField() == null ? null : Map.of(exception.getField(), exception.getMessage());
         return ResponseEntity.status(exception.getStatus())
-                .body(ApiResponse.failure(exception.getMessage(), null));
+                .body(ApiResponse.failure(exception.getMessage(), fieldErrors));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

@@ -12,6 +12,7 @@ public record AuthProperties(
         Duration refreshTokenTtl,
         int maxLoginFailures,
         Duration loginLockout,
+        boolean breachedPasswordCheck,
         Cookie cookie,
         Google google) {
 

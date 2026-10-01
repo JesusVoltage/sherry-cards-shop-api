@@ -3,6 +3,7 @@ package com.sherrycardsshop.api.security;
 import java.time.Duration;
 
 import com.sherrycardsshop.api.auth.config.AuthProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,14 @@ public class AuthCookies {
 
     public ResponseCookie refreshToken(String token) {
         return build(REFRESH_TOKEN, token, REFRESH_PATH, authProperties.refreshTokenTtl());
+    }
+
+    /** Cabeceras Set-Cookie que inician o renuevan una sesión. */
+    public HttpHeaders sessionHeaders(String accessToken, String refreshToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, accessToken(accessToken).toString());
+        headers.add(HttpHeaders.SET_COOKIE, refreshToken(refreshToken).toString());
+        return headers;
     }
 
     public ResponseCookie clearAccessToken() {

@@ -90,8 +90,7 @@ public class AuthController {
 
     private ResponseEntity<ApiResponse<UserDto>> sessionResponse(String message, AuthSession session) {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, authCookies.accessToken(session.accessToken()).toString())
-                .header(HttpHeaders.SET_COOKIE, authCookies.refreshToken(session.refreshToken()).toString())
+                .headers(authCookies.sessionHeaders(session.accessToken(), session.refreshToken()))
                 .body(ApiResponse.success(message, session.user()));
     }
 

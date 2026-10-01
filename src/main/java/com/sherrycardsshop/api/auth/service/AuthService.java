@@ -1,6 +1,5 @@
 package com.sherrycardsshop.api.auth.service;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -26,8 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-    // BCrypt solo usa los primeros 72 bytes de la contraseña.
-    private static final int MAX_PASSWORD_BYTES = 72;
     private static final int MAX_USERNAME_BASE_LENGTH = 24;
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -35,6 +32,7 @@ public class AuthService {
     private final RolRepository rolRepository;
     private final EstadoUsuarioRepository estadoUsuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordPolicy passwordPolicy;
     private final TokenService tokenService;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final LoginAttemptService loginAttemptService;
@@ -44,12 +42,13 @@ public class AuthService {
 
     public AuthService(UsuarioRepository usuarioRepository, RolRepository rolRepository,
                        EstadoUsuarioRepository estadoUsuarioRepository, PasswordEncoder passwordEncoder,
-                       TokenService tokenService, GoogleTokenVerifier googleTokenVerifier,
+                       PasswordPolicy passwordPolicy, TokenService tokenService, GoogleTokenVerifier googleTokenVerifier,
                        LoginAttemptService loginAttemptService, UserMapper userMapper) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.estadoUsuarioRepository = estadoUsuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordPolicy = passwordPolicy;
         this.tokenService = tokenService;
         this.googleTokenVerifier = googleTokenVerifier;
         this.loginAttemptService = loginAttemptService;
@@ -59,16 +58,14 @@ public class AuthService {
 
     @Transactional
     public UserDto register(RegisterRequest request) {
-        if (exceedsPasswordLimit(request.password())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "La contraseña no puede superar los 72 bytes");
-        }
         String email = normalizeEmail(request.email());
         if (usuarioRepository.existsByUsernameIgnoreCase(request.username())) {
-            throw new ApiException(HttpStatus.CONFLICT, "El username ya existe");
+            throw new ApiException(HttpStatus.CONFLICT, "El username ya existe", "username");
         }
         if (usuarioRepository.existsByEmail(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "El email ya está registrado");
+            throw new ApiException(HttpStatus.CONFLICT, "El email ya está registrado", "email");
         }
+        passwordPolicy.validate(request.password(), email, request.username(), "password");
 
         Usuario usuario = newUsuario(email, request.username(), request.nombre().trim(), blankToNull(request.apellidos()));
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
@@ -185,7 +182,7 @@ public class AuthService {
     }
 
     private boolean passwordMatches(String password, String passwordHash) {
-        if (exceedsPasswordLimit(password)) {
+        if (!PasswordPolicy.fitsBcrypt(password)) {
             return false;
         }
         boolean matches = passwordEncoder.matches(password, passwordHash == null ? dummyPasswordHash : passwordHash);
@@ -214,10 +211,6 @@ public class AuthService {
             candidate = base + "-" + (1000 + RANDOM.nextInt(9000));
         }
         return candidate;
-    }
-
-    private static boolean exceedsPasswordLimit(String password) {
-        return password.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES;
     }
 
     private static String normalizeEmail(String email) {

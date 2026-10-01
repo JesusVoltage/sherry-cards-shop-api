@@ -49,6 +49,27 @@ Errores: 400 validación (`data` con los campos), 401 credenciales o sesión no 
 - El límite de intentos se guarda en memoria: se reinicia con cada despliegue y no se
   comparte entre réplicas.
 
+## Datos de la cuenta y contraseña
+
+| Método y ruta | Cuerpo | Respuesta |
+| --- | --- | --- |
+| `PUT /api/account/profile` | `username`, `nombre`, `apellidos?` | 200 `UserDto`; 409 con `data.username` si está en uso |
+| `PUT /api/account/password` | `currentPassword` (salvo cuentas solo de Google), `newPassword` | 200 `UserDto` y cookies nuevas |
+
+- El correo no se puede cambiar: requerirá verificar la nueva dirección por email.
+- Cambiar la contraseña exige la actual (400 con `data.currentPassword` si es incorrecta;
+  429 tras 5 fallos en 15 min), revoca todos los refresh tokens del usuario y emite una sesión
+  nueva para el dispositivo actual. Los access tokens de otros dispositivos caducan en 15 min.
+- `UserDto` incluye `hasPassword` y `googleLinked`.
+
+### Política de contraseñas (registro y cambio)
+
+Según NIST SP 800-63B: mínimo 8 caracteres y máximo 72 bytes (BCrypt), sin reglas de
+composición, sin el username ni la parte local del correo (si tienen 4 o más caracteres) y
+sin contraseñas filtradas. Esto último consulta la API de rangos de Pwned Passwords enviando
+solo los 5 primeros caracteres del SHA-1; si no responde en 2-3 s, la comprobación se omite.
+Los errores de política responden 400 con el campo en `data`.
+
 ## Promocionar un administrador
 
 ```sql
