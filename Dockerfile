@@ -10,6 +10,9 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 COPY --from=build /workspace/target/sherry-cards-shop-api-1.0.0.jar app.jar
 ENV SPRING_PROFILES_ACTIVE=prod
+# Railway factura por RAM reservada: se limita la JVM a lo que necesita una tienda con poco tráfico.
+# Se puede sobrescribir definiendo JAVA_TOOL_OPTIONS en las variables del servicio.
+ENV JAVA_TOOL_OPTIONS="-Xmx256m -Xss512k -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=48m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
 USER spring:spring
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
