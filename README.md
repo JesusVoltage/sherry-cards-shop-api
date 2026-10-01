@@ -46,6 +46,11 @@ Opcionales:
 | `SPRING_PROFILES_ACTIVE` | Perfil Spring (`dev`, `test` o `prod`) | `dev` |
 | `SERVER_PORT` | Puerto HTTP local; Railway usa su variable `PORT` automáticamente | `8080` |
 | `CORS_ALLOWED_ORIGINS` | Orígenes Angular separados por comas | `http://localhost:4200` |
+| `APP_AUTH_JWT_SECRET` | Secreto HS256 de los access tokens (mínimo 32 bytes). **Obligatorio en `prod`** | Valor fijo de desarrollo en `dev` |
+| `GOOGLE_CLIENT_ID` | Client ID OAuth de Google; vacío desactiva `/api/auth/google` | vacío |
+| `APP_AUTH_COOKIE_SECURE` | Atributo `Secure` de las cookies | `true` (`false` en `dev`) |
+| `APP_AUTH_COOKIE_SAME_SITE` | `Lax` con frontend y API en el mismo sitio; `None` si están en dominios distintos | `Lax` |
+| `APP_AUTH_COOKIE_DOMAIN` | Dominio de las cookies; normalmente vacío | vacío |
 
 `spring.jpa.hibernate.ddl-auto` permanece en `validate`; Hibernate no crea ni modifica tablas. Flyway está activo para MySQL, valida las migraciones y tiene deshabilitada la operación `clean`. La migración `V1__create_categories.sql` crea la tabla `categories` e inserta las seis categorías iniciales. En una base vacía Flyway crea su tabla interna `flyway_schema_history` y aplica esa migración.
 
@@ -74,6 +79,9 @@ SPRING_PROFILES_ACTIVE=prod
 SPRING_DATASOURCE_URL=jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}
 SPRING_DATASOURCE_USERNAME=${{MySQL.MYSQLUSER}}
 SPRING_DATASOURCE_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+APP_AUTH_JWT_SECRET=<valor aleatorio, p. ej. `openssl rand -base64 48`>
+GOOGLE_CLIENT_ID=<client ID de Google Cloud>
+CORS_ALLOWED_ORIGINS=<URL exacta del frontend>
 ```
 
 En estas referencias, `MySQL` debe coincidir exactamente con el nombre del servicio de base de datos en Railway. Si Railway genera otro nombre, actualiza ese prefijo. El host y puerto deben ser los accesibles desde el servicio de API; no uses una URL `mysql://` sin el prefijo JDBC. Mantén usuario y contraseña como referencias al servicio MySQL, sin copiarlos al repositorio.
@@ -82,6 +90,7 @@ En estas referencias, `MySQL` debe coincidir exactamente con el nombre del servi
 
 - `GET /api/health`: estado de la aplicación.
 - `GET /api/categories`: categorías activas ordenadas por prioridad.
+- `POST /api/auth/register|login|google|refresh|logout` y `GET /api/auth/me`: autenticación. Ver `docs/autenticacion.md`.
 - `GET /actuator/health`: salud de la aplicación y sus componentes.
 - `GET /v3/api-docs` y `/swagger-ui.html`: documentación OpenAPI.
 
