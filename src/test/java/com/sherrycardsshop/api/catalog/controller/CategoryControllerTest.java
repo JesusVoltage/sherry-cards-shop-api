@@ -29,7 +29,7 @@ class CategoryControllerTest {
     @Test
     void returnsCategoriesInApiResponseEnvelope() throws Exception {
         when(categoryService.getActiveCategories()).thenReturn(List.of(
-                new CategoryDto(1L, "Pokémon", "pokemon", null, null, 1)));
+                new CategoryDto(1L, "Pokémon", "pokemon", null, null, 1, null)));
 
         mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk())

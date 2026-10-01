@@ -30,6 +30,21 @@ product_types, product_statuses, order_statuses: tablas de referencia
   `CANCELLED`, `REFUNDED` (los tres últimos son finales). Cada cambio se registra con
   `CustomerOrder.changeStatus`.
 
+## Categorías anidadas
+
+`categories.parent_id` (V5) permite subcategorías de cualquier profundidad, por ejemplo
+Pokémon › Expansiones › Escarlata y Púrpura. Las raíces tienen `parent_id` nulo y no se puede
+borrar una categoría con hijas. Un producto puede colgar de cualquier nivel.
+
+- `GET /api/categories`: categorías raíz activas (lo que muestra la home).
+- `GET /api/categories/tree`: árbol de categorías activas con `children`, para menús.
+  Una rama cuyo padre está inactivo se oculta entera.
+- `CategoryService.getSelfAndDescendantIds(id)`: la categoría y todas sus subcategorías
+  visibles, para listar productos de una categoría incluyendo los de sus hijas.
+
+MySQL no admite `CHECK` sobre columnas `AUTO_INCREMENT`, así que evitar que una categoría sea
+su propio padre o forme ciclos corresponde a la aplicación (la futura administración).
+
 ## Sobreventa
 
 Un pedido solo llega al pago si su stock se ha reservado:
