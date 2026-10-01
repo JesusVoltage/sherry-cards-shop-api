@@ -8,6 +8,7 @@ import com.sherrycardsshop.api.auth.repository.TokenAutenticacionRepository;
 import com.sherrycardsshop.api.auth.repository.UsuarioRepository;
 import com.sherrycardsshop.api.auth.service.GoogleTokenVerifier;
 import com.sherrycardsshop.api.auth.service.GoogleTokenVerifier.GoogleUser;
+import com.sherrycardsshop.api.customer.repository.DireccionUsuarioRepository;
 import com.sherrycardsshop.api.security.AuthCookies;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,11 +49,15 @@ class AuthIntegrationTest {
     @Autowired
     private TokenAutenticacionRepository tokenRepository;
 
+    @Autowired
+    private DireccionUsuarioRepository direccionRepository;
+
     @MockitoBean
     private GoogleTokenVerifier googleTokenVerifier;
 
     @BeforeEach
     void setUp() {
+        direccionRepository.deleteAllInBatch();
         tokenRepository.deleteAllInBatch();
         usuarioRepository.deleteAllInBatch();
     }

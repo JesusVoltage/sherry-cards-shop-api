@@ -91,6 +91,7 @@ En estas referencias, `MySQL` debe coincidir exactamente con el nombre del servi
 - `GET /api/health`: estado de la aplicación.
 - `GET /api/categories`: categorías activas ordenadas por prioridad.
 - `POST /api/auth/register|login|google|refresh|logout` y `GET /api/auth/me`: autenticación. Ver `docs/autenticacion.md`.
+- `GET|POST /api/account/addresses` y `PUT|DELETE /api/account/addresses/{id}`: direcciones del usuario autenticado. Ver `docs/direcciones.md`.
 - `GET /actuator/health`: salud de la aplicación y sus componentes.
 - `GET /v3/api-docs` y `/swagger-ui.html`: documentación OpenAPI.
 
