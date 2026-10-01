@@ -9,6 +9,10 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       maximum-pool-size: 5
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   jpa:
     open-in-view: false
     hibernate:
@@ -25,6 +29,8 @@ server:
   tomcat:
     threads:
       max: 50
+    # Lee entera una subida demasiado grande para poder responder 413 en vez de cortar la conexión.
+    max-swallow-size: 10MB
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -44,6 +50,14 @@ management:
 app:
   site:
     closed: ${APP_SITE_CLOSED:false}
+  storage:
+    endpoint: ${R2_ENDPOINT:}
+    access-key-id: ${R2_ACCESS_KEY_ID:}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+    bucket: ${R2_BUCKET:}
+    public-url: ${R2_PUBLIC_URL:}
+    max-image-size: 5MB
+    max-total-size: 9GB
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
   auth:
