@@ -34,4 +34,8 @@ public interface DireccionUsuarioRepository extends JpaRepository<DireccionUsuar
     @Query("update DireccionUsuario d set d.predeterminadaFacturacion = false "
             + "where d.usuario.id = :usuarioId and d.id <> :exceptId and d.predeterminadaFacturacion = true")
     int clearDefaultFacturacion(@Param("usuarioId") Long usuarioId, @Param("exceptId") Long exceptId);
+
+    @Modifying
+    @Query("delete from DireccionUsuario d where d.usuario.id = :usuarioId")
+    int deleteAllByUsuarioId(@Param("usuarioId") Long usuarioId);
 }

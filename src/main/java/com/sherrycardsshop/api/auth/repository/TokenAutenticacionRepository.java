@@ -18,4 +18,8 @@ public interface TokenAutenticacionRepository extends JpaRepository<TokenAutenti
     @Modifying
     @Query("update TokenAutenticacion t set t.revokedAt = :now where t.usuario.id = :usuarioId and t.revokedAt is null")
     int revokeAllActiveByUsuarioId(@Param("usuarioId") Long usuarioId, @Param("now") LocalDateTime now);
+
+    @Modifying
+    @Query("delete from TokenAutenticacion t where t.usuario.id = :usuarioId")
+    int deleteAllByUsuarioId(@Param("usuarioId") Long usuarioId);
 }

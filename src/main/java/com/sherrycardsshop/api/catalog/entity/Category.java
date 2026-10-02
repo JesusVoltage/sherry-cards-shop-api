@@ -25,6 +25,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Category {
 
+    /** Categoría del sistema para productos sin clasificar; no se puede borrar ni mover. */
+    public static final String UNCATEGORIZED_SLUG = "sin-categoria";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -57,6 +60,10 @@ public class Category {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public boolean isSystem() {
+        return UNCATEGORIZED_SLUG.equals(slug);
+    }
 
     @PrePersist
     void setCreationTimestamps() {

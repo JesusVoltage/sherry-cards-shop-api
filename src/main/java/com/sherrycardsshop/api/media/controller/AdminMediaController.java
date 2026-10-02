@@ -3,6 +3,7 @@ package com.sherrycardsshop.api.media.controller;
 import com.sherrycardsshop.api.common.dto.ApiResponse;
 import com.sherrycardsshop.api.media.dto.MediaFileDto;
 import com.sherrycardsshop.api.media.service.MediaService;
+import com.sherrycardsshop.api.media.service.MediaService.Folder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,8 +32,9 @@ public class AdminMediaController {
     @PostMapping(path = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Subir imagen", description = "JPG, PNG o WebP de hasta 5 MB. Devuelve la URL pública.")
     public ResponseEntity<ApiResponse<MediaFileDto>> upload(@RequestPart("file") MultipartFile file,
+                                                            @RequestParam(defaultValue = "PRODUCTS") Folder folder,
                                                             @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Imagen subida correctamente",
-                mediaService.uploadProductImage(file, Long.valueOf(jwt.getSubject()))));
+                mediaService.uploadImage(file, folder, Long.valueOf(jwt.getSubject()))));
     }
 }

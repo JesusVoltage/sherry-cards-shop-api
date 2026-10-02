@@ -116,7 +116,8 @@ public class AdminProductService {
         List<Category> categories = categoryRepository.findAll();
         Map<Long, Category> byId = categories.stream().collect(Collectors.toMap(Category::getId, Function.identity()));
         List<CategoryOption> categoryOptions = categories.stream()
-                .map(category -> new CategoryOption(category.getId(), category.getName(), path(category, byId), category.isActive()))
+                .map(category -> new CategoryOption(category.getId(), category.getName(), path(category, byId),
+                        category.isActive(), category.isSystem()))
                 .sorted(Comparator.comparing(CategoryOption::path, String.CASE_INSENSITIVE_ORDER))
                 .toList();
         List<CodeName> types = typeRepository.findAll().stream()

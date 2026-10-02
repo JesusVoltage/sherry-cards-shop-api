@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sherrycardsshop.api.catalog.repository.CategoryRepository;
 import com.sherrycardsshop.api.catalog.repository.ProductImageRepository;
 import com.sherrycardsshop.api.common.exception.ApiException;
 import com.sherrycardsshop.api.media.config.StorageProperties;
@@ -35,22 +36,36 @@ public class MediaService {
     private final ImageStorage storage;
     private final MediaFileRepository mediaFileRepository;
     private final ProductImageRepository productImageRepository;
+    private final CategoryRepository categoryRepository;
     private final StorageProperties properties;
     private final TransactionTemplate transactionTemplate;
 
     public MediaService(ImageStorage storage, MediaFileRepository mediaFileRepository,
-                        ProductImageRepository productImageRepository, StorageProperties properties,
+                        ProductImageRepository productImageRepository, CategoryRepository categoryRepository,
+                        StorageProperties properties,
                         PlatformTransactionManager transactionManager) {
         this.storage = storage;
         this.mediaFileRepository = mediaFileRepository;
         this.productImageRepository = productImageRepository;
+        this.categoryRepository = categoryRepository;
         this.properties = properties;
         // En afterCommit la transacción original sigue enlazada pero ya no confirma nada: hace falta una nueva.
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
-    public MediaFileDto uploadProductImage(MultipartFile file, Long uploadedBy) {
+    /** Carpetas del bucket donde se puede subir; la clave nunca sale del texto que envía el cliente. */
+    public enum Folder {
+        PRODUCTS("products"), CATEGORIES("categories");
+
+        private final String prefix;
+
+        Folder(String prefix) {
+            this.prefix = prefix;
+        }
+    }
+
+    public MediaFileDto uploadImage(MultipartFile file, Folder folder, Long uploadedBy) {
         if (!storage.enabled()) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "La subida de imágenes todavía no está configurada");
         }
@@ -69,7 +84,7 @@ public class MediaService {
                     "Se ha alcanzado el límite de almacenamiento de imágenes (" + properties.maxTotalSize().toGigabytes() + " GB)");
         }
 
-        String key = "products/" + YearMonth.now(ZoneOffset.UTC) + "/" + UUID.randomUUID() + "." + format.extension();
+        String key = folder.prefix + "/" + YearMonth.now(ZoneOffset.UTC) + "/" + UUID.randomUUID() + "." + format.extension();
         storage.put(key, content, format.contentType());
 
         MediaFile media = new MediaFile();
@@ -88,7 +103,7 @@ public class MediaService {
     }
 
     /**
-     * Borra del almacén las imágenes que ya no usa ningún producto, solo cuando la transacción que
+     * Borra del almacén las imágenes que ya no usa ningún producto ni categoría, solo cuando la transacción que
      * las quitó se confirma: un rollback no puede dejar un producto apuntando a un archivo borrado.
      */
     public void releaseAfterCommit(Collection<String> urls) {
@@ -111,7 +126,7 @@ public class MediaService {
     private void deleteIfUnused(String url) {
         try {
             transactionTemplate.executeWithoutResult(status -> {
-                if (productImageRepository.existsByUrl(url)) {
+                if (productImageRepository.existsByUrl(url) || categoryRepository.existsByImageUrl(url)) {
                     return;
                 }
                 mediaFileRepository.findByUrl(url).ifPresent(media -> {

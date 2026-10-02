@@ -3,11 +3,13 @@ package com.sherrycardsshop.api.catalog.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.sherrycardsshop.api.catalog.entity.Category;
 import com.sherrycardsshop.api.catalog.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -41,8 +43,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select count(oi) > 0 from OrderItem oi where oi.variant.product.id = :productId")
     boolean hasOrders(@Param("productId") Long productId);
 
+    @Query("select p.category.id as categoryId, count(p) as total from Product p group by p.category.id")
+    List<CategoryCount> countByCategory();
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Product p set p.category = :target where p.category.id = :sourceId")
+    int moveToCategory(@Param("sourceId") Long sourceId, @Param("target") Category target);
+
     @Query("select p.status.code as code, count(p) as total from Product p group by p.status.code")
     List<StatusCount> countByStatus();
+
+    interface CategoryCount {
+        Long getCategoryId();
+
+        long getTotal();
+    }
 
     interface StatusCount {
         String getCode();
